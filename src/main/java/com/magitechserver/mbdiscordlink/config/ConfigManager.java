@@ -44,7 +44,7 @@ public class ConfigManager {
                 file.createNewFile();
             }
             configLoader = HoconConfigurationLoader.builder().setFile(file).build();
-            configNode = configLoader.load();
+            configNode = configLoader.load(ConfigurationOptions.defaults().setObjectMapperFactory(instance.factory).setShouldCopyDefaults(true));
             root = configNode.getValue(TypeToken.of(ConfigCategory.class), new ConfigCategory());
             configLoader.save(configNode);
             return root;
