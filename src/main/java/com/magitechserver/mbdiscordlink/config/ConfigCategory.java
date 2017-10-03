@@ -3,15 +3,17 @@ package com.magitechserver.mbdiscordlink.config;
 import ninja.leaping.configurate.objectmapping.Setting;
 import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Frani on 28/09/2017.
  */
 @ConfigSerializable
 public class ConfigCategory {
+
+    public ConfigCategory() {
+        roles_to_sync.put("some.perm", "19281928192819");
+    }
 
     @Setting(value = "link-players", comment = "Should the plugin link players to their Discord account?")
     public boolean link_players = true;
@@ -34,6 +36,14 @@ public class ConfigCategory {
         public List<String> unlink = new ArrayList<>(Arrays.asList("We'll miss you, %player%!"));
 
     }
+
+    @Setting(value = "roles-to-sync", comment = "A key-value list with roles that should sync with in-game groups\n" +
+            "The format is \"<in-game permission node>\"=\"discord-role-id\"")
+    public Map<String, String> roles_to_sync = new HashMap<>();
+
+    @Setting(value = "role-sync-interval", comment = "Interval between every role sync check, in seconds\n" +
+            "Set to 0 to disable. The minimum value is 15 seconds")
+    public int role_sync_interval = 15;
 
     @Setting(value = "messages")
     public Messages messages = new Messages();
