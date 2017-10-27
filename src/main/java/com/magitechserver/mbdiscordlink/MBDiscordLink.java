@@ -23,8 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 @Plugin(
         id = "mbdiscordlink",
-        name = "MBDiscordLink",
-        version = "1.2",
+        name = "MBDiscordLink-API7",
         description = "Addon for MagiBridge that links in-game accounts with Discord accounts",
         authors = {
                 "Eufranio"

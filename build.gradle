@@ -3,11 +3,11 @@ plugins {
 }
 
 group = pluginGroup
-version = pluginVersion
+version = '1.3' + ((System.getenv("BUILD_NUMBER") != null || System.getProperty("BUILD_NUMBER") != null) ? ("-b" + (System.getenv("BUILD_NUMBER") ?: System.getProperty("BUILD_NUMBER"))) : "")
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:6.0.0'
-    compileOnly files('libs/MagiBridge-2.4-all.jar')
+    compile 'org.spongepowered:spongeapi:7.0.0-SNAPSHOT'
+    compileOnly files('libs/MagiBridge-API7-2.4.1.jar')
 }
 
 sponge.plugin.id = pluginId
