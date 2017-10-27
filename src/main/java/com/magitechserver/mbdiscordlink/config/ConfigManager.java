@@ -18,7 +18,7 @@ import java.nio.file.Path;
  */
 public class ConfigManager {
 
-    private Path configDir;
+    private File configDir;
     private MBDiscordLink instance;
     private ConfigCategory root;
     private UserCategory users;
@@ -27,19 +27,19 @@ public class ConfigManager {
     private ConfigurationNode configNode;
     private ConfigurationNode userNode;
 
-    public ConfigManager(MBDiscordLink instance, Path configDir) {
+    public ConfigManager(MBDiscordLink instance, File configDir) {
         this.configDir = configDir;
         this.instance = instance;
-        if (!configDir.toFile().exists()) {
+        if (!configDir.exists()) {
             try {
-                configDir.toFile().createNewFile();
+                configDir.createNewFile();
             } catch (Exception e) {}
         }
     }
 
     private ConfigCategory loadConfig() {
         try {
-            File file = new File(configDir.toFile(), "MBDiscordLink.conf");
+            File file = new File(configDir, "MBDiscordLink.conf");
             if (!file.exists()) {
                 file.createNewFile();
             }
@@ -57,7 +57,7 @@ public class ConfigManager {
 
     public UserCategory loadUsers() {
         try {
-            File file = new File(configDir.toFile(), "Users.conf");
+            File file = new File(configDir, "Users.conf");
             if (!file.exists()) {
                 file.createNewFile();
             }

@@ -26,7 +26,6 @@ public class RoleSyncTask implements Consumer<Task> {
                         User user = jda.getUserById(userId);
                         Role role = jda.getRoleById(entry.getValue());
                         if (user != null && role != null) {
-                            if (role.getGuild().getMember(user).getRoles().contains(role)) return;
                             role.getGuild().getController().addRolesToMember(role.getGuild().getMember(user), role).queue();
                             MBDiscordLink.logger.info("Adding role " + role.getName() + " to " + user.getName());
                         }
