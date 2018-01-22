@@ -25,8 +25,8 @@ public class RoleSyncTask implements Consumer<Task> {
                         String userId = MBDiscordLink.users.users.get(p.getUniqueId().toString());
                         User user = jda.getUserById(userId);
                         Role role = jda.getRoleById(entry.getValue());
-                        if (user != null && role != null) {
-                            role.getGuild().getController().addRolesToMember(role.getGuild().getMember(user), role).queue();
+                        if (user != null && role != null && !role.getGuild().getMember(user).getRoles().contains(role)) {
+                            role.getGuild().getController().addSingleRoleToMember(role.getGuild().getMember(user), role).queue();
                             MBDiscordLink.logger.info("Adding role " + role.getName() + " to " + user.getName());
                         }
                     }
@@ -36,7 +36,7 @@ public class RoleSyncTask implements Consumer<Task> {
                         User user = jda.getUserById(userId);
                         Role role = jda.getRoleById(entry.getValue());
                         if (role.getGuild().getMember(user).getRoles().contains(role)) {
-                            role.getGuild().getController().removeRolesFromMember(role.getGuild().getMember(user), role).queue();
+                            role.getGuild().getController().removeSingleRoleFromMember(role.getGuild().getMember(user), role).queue();
                             MBDiscordLink.logger.info("Removing \"" + role.getName() + "\" from " + user.getName() + " because he no loger has permission to get that Role.");
                         }
                     }
