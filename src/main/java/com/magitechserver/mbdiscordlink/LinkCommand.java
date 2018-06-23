@@ -33,6 +33,7 @@ public class LinkCommand {
                                 .replace("%botname%", MBDiscordLink.API.getJDA().getSelfUser().getName())
                                 .replace("%code%", code);
                         MBDiscordLink.pendingUsers.put(code, ((Player)src).getUniqueId().toString());
+                        MBDiscordLink.reload();
                         src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(msg));
                         return CommandResult.empty();
                     }
@@ -72,7 +73,7 @@ public class LinkCommand {
                             }
 
                         }
-
+                        MBDiscordLink.reload();
                         src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(msg));
                         return CommandResult.empty();
                     }

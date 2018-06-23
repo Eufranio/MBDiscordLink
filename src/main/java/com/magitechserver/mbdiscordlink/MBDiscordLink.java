@@ -96,4 +96,8 @@ public class MBDiscordLink {
         manager.reloadUsers();
         return true;
     }
+
+    public static void reload() {
+        users = manager.reloadUsers();
+    }
 }

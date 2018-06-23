@@ -5,6 +5,7 @@ import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.scheduler.Task;
 
 import java.util.Map;
@@ -35,7 +36,7 @@ public class RoleSyncTask implements Consumer<Task> {
                         String userId = MBDiscordLink.users.users.get(p.getUniqueId().toString());
                         User user = jda.getUserById(userId);
                         Role role = jda.getRoleById(entry.getValue());
-                        if (role.getGuild().getMember(user).getRoles().contains(role)) {
+                        if (user != null && role != null && role.getGuild().getMember(user) != null && role.getGuild().getMember(user).getRoles().contains(role)) {
                             role.getGuild().getController().removeSingleRoleFromMember(role.getGuild().getMember(user), role).queue();
                             MBDiscordLink.logger.info("Removing \"" + role.getName() + "\" from " + user.getName() + " because he no loger has permission to get that Role.");
                         }
