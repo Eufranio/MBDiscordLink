@@ -1,16 +1,14 @@
 plugins {
-    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'org.spongepowered.plugin' version '0.9.0'
 }
 
 group = pluginGroup
-version = '1.5' + ((System.getenv("BUILD_NUMBER") != null || System.getProperty("BUILD_NUMBER") != null) ? ("-b" + (System.getenv("BUILD_NUMBER") ?: System.getProperty("BUILD_NUMBER"))) : "")
+version = '1.6'
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:7.0.0-SNAPSHOT'
-    //compile 'com.github.Eufranio:MagiBridge:master-SNAPSHOT'
-    compileOnly files('libs/MagiBridge-API7-2.4.1.jar')
+    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+    compile 'com.github.Eufranio:MagiBridge:api-7-SNAPSHOT'
 }
-
 
 repositories {
     jcenter()

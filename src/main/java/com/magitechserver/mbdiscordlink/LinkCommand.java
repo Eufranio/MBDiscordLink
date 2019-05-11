@@ -1,6 +1,7 @@
 package com.magitechserver.mbdiscordlink;
 
-import net.dv8tion.jda.core.entities.User;
+import com.magitechserver.magibridge.MagiBridge;
+import net.dv8tion.jda.api.entities.User;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -30,7 +31,7 @@ public class LinkCommand {
 
                         String code = String.valueOf((int)(Math.random()*9000)+1000);
                         String msg = MBDiscordLink.config.messages.link_code_message
-                                .replace("%botname%", MBDiscordLink.API.getJDA().getSelfUser().getName())
+                                .replace("%botname%", MagiBridge.getInstance().getJDA().getSelfUser().getName())
                                 .replace("%code%", code);
                         MBDiscordLink.pendingUsers.put(code, ((Player)src).getUniqueId().toString());
                         MBDiscordLink.reload();
@@ -55,9 +56,9 @@ public class LinkCommand {
                         UUID playerUuid = ((Player) src).getUniqueId();
                         String userId = MBDiscordLink.users.users.get(playerUuid.toString());
                         if (userId != null && !userId.isEmpty()) {
-                            User user = MBDiscordLink.API.getJDA().getUserById(userId);
+                            User user = MagiBridge.getInstance().getJDA().getUserById(userId);
                             if (user != null) {
-                                MBDiscordLink.API.getJDA().getGuilds().stream()
+                                MagiBridge.getInstance().getJDA().getGuilds().stream()
                                         .filter(g -> g.getMembers().contains(g.getMember(user)))
                                         .forEach(g -> g.getController().removeRolesFromMember
                                                 (g.getMember(user), g.getRolesByName(MBDiscordLink.config.linked_users_role, true))
