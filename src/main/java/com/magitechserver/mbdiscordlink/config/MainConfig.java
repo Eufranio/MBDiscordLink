@@ -9,17 +9,33 @@ import java.util.*;
  * Created by Frani on 28/09/2017.
  */
 @ConfigSerializable
-public class ConfigCategory {
+public class MainConfig {
 
-    public ConfigCategory() {
+    public MainConfig() {
         roles_to_sync.put("some.perm", "19281928192819");
     }
+
+    @Setting(comment = "The URL of the database that MBDiscordLink should store links")
+    public String databaseUrl = "jdbc:sqlite:MBDiscordLink.db";
 
     @Setting(value = "link-players", comment = "Should the plugin link players to their Discord account?")
     public boolean link_players = true;
 
     @Setting(value = "linked-users-role", comment = "Discord role given to linked users")
     public String linked_users_role = "linked";
+
+    @Setting(comment = "Should the plugin sync the Discord nicknames of linked users with their in-game names?")
+    public boolean syncNicknames = true;
+
+    @Setting(comment = "If this is enabled, the plugin will sync in the inverse direction: has discord role -> get in-game group. If " +
+            "enabled, the format of roles-to-sync SHOULD be group-name=role-id, and addGroupCommand and removeGroupCommand must be set! \"default\" can't be used.")
+    public boolean inverseSync = false;
+
+    @Setting(comment = "If inverse sync is enabled, the plugin will run this command to add a player to a in-game group")
+    public String addGroupCommand = "lp user %player% parent add %group%";
+
+    @Setting(comment = "If inverse sync is enabled, the plugin will run this command to remove a player from a in-game group")
+    public String removeGroupCommand = "lp user %player% parent remove %group%";
 
     @Setting(value = "commands")
     public CommandsCategory commands = new CommandsCategory();
@@ -70,8 +86,8 @@ public class ConfigCategory {
         @Setting(value = "not_linked", comment = "Message sent to the user if his account isn't linked")
         public String not_linked = "&cYou have no linked acccounts!";
 
-        @Setting(value = "already-linked", comment = "Message sent to the user if his account is already linked")
-        public String already_linked = "&cYou're already linked! Use /unlink if you wish to unlink your account!";
+        @Setting(value = "already-linked", comment = "Message sent to the Discord user if his account is already linked")
+        public String already_linked = "You're already linked! Use /unlink in-game if you wish to unlink your account!";
 
     }
 
