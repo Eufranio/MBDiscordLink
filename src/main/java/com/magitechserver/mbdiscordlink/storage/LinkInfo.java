@@ -19,7 +19,7 @@ public class LinkInfo extends BaseDaoEnabled<LinkInfo, UUID> {
     @DatabaseField(id = true)
     public UUID uuid;
 
-    @DatabaseField
+    @DatabaseField(index = true)
     public String discordId;
 
     public net.dv8tion.jda.api.entities.User getDiscordUser() {

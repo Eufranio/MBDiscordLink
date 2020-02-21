@@ -44,12 +44,12 @@ public class MainConfig {
     public static class CommandsCategory {
 
         @Setting(value = "link-commands", comment = "Commands that should be run once a player linked his account" +
-                "Supports %player%")
+                "Supports %player%, %user%")
         public List<String> link = new ArrayList<>(Arrays.asList("give %player% stone 1"));
 
         @Setting(value = "unlink-commands", comment = "Commands that should be run once a player unlinked his account" +
-                "Supports %player%")
-        public List<String> unlink = new ArrayList<>(Arrays.asList("We'll miss you, %player%!"));
+                "Supports %player%, %user%")
+        public List<String> unlink = new ArrayList<>(Arrays.asList("say We'll miss you, %player%!"));
 
     }
 
@@ -72,7 +72,7 @@ public class MainConfig {
         public String link_code_message = "&aSend a message to &6%botname%&a containing the code &b%code%&a to complete your link!";
 
         @Setting(value = "linked-successfully", comment = "Message sent to the player once he linked his account" +
-                "Supports %user%")
+                "Supports %user%, %player%")
         public String linked_successfully = "&aSuccessfully linked with %user%!";
 
         @Setting(value = "linked-successfully-discord", comment = "Message sent to the Discord user unce he linked his account" +
@@ -80,7 +80,7 @@ public class MainConfig {
         public String discord_linked_successfully = "Successfully linked with %player%!";
 
         @Setting(value = "unlink-message", comment = "Message sent to the player when he unlinks his account" +
-                "Supports %player%")
+                "Supports %player%, %user%")
         public String unlink = "&aYou just unlinked from your discord account!";
 
         @Setting(value = "not_linked", comment = "Message sent to the user if his account isn't linked")
@@ -88,6 +88,15 @@ public class MainConfig {
 
         @Setting(value = "already-linked", comment = "Message sent to the Discord user if his account is already linked")
         public String already_linked = "You're already linked! Use /unlink in-game if you wish to unlink your account!";
+
+        @Setting(value = "whois-player", comment = "Message sent to the player, in-game, when using /whois <other player>")
+        public String whois_player = "&a%player%&7's Discord user: &b%user%";
+
+        @Setting(value = "whois-user", comment = "Message sent to the user, in Discord, when using !whois @User")
+        public String whois_user = "%user%'s Minecraft nickname: %player%";
+
+        @Setting(value = "whois-not-linked", comment = "Message sent to the user/player when the target user/player is not linked")
+        public String whois_not_linked = "This user/player is not linked!";
 
     }
 

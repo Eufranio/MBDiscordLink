@@ -9,11 +9,14 @@ import com.magitechserver.mbdiscordlink.storage.LinkInfo;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,6 +31,41 @@ public class LinkManager {
     }
 
     private Map<String, UUID> codeToPlayer = Maps.newHashMap();
+
+    public void whoIs(User user, TextChannel channel) {
+        MainConfig.Messages messages = plugin.configManager.get().messages;
+        try {
+            List<LinkInfo> links = plugin.links.objDao.queryForEq("discordId", user.getId());
+            if (links.isEmpty()) {
+                channel.sendMessage(messages.whois_not_linked).queue();
+                return;
+            }
+
+            LinkInfo info = links.get(0);
+            channel.sendMessage(messages.whois_user
+                    .replace("%player%", info.getSpongeUser().getName())
+                    .replace("%user%", user.getAsTag())).queue();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    public void whoIs(CommandSource sender, org.spongepowered.api.entity.living.player.User targetUser) {
+        MainConfig.Messages messages = plugin.configManager.get().messages;
+
+        LinkInfo link = plugin.links.get(targetUser.getUniqueId());
+        if (link == null) {
+            sender.sendMessage(Utils.toText(messages.whois_not_linked));
+            return;
+        }
+
+        Guild guild = MagiBridge.getInstance().getJDA()
+                .getTextChannelById(MagiBridge.getConfig().CHANNELS.MAIN_CHANNEL)
+                .getGuild();
+
+        Member member = guild.getMemberById(link.discordId);
+        sender.sendMessage(Utils.toText(messages.whois_player
+                .replace("%player%", targetUser.getName())
+                .replace("%user%", member.getUser().getAsTag())));
+    }
 
     public void openInvite(Player player) {
         MainConfig config = plugin.configManager.get();
@@ -58,7 +96,7 @@ public class LinkManager {
         LinkInfo info = plugin.links.get(player);
         if (info != null) {
             this.codeToPlayer.remove(code);
-            channel.sendMessage(config.messages.already_linked);
+            channel.sendMessage(config.messages.already_linked).queue();
             return;
         }
 
@@ -68,7 +106,7 @@ public class LinkManager {
 
         Member member = guild.getMember(user);
         if (member == null) {
-            channel.sendMessage("You're not part of " + guild.getName() + " anymore, so you can't link!");
+            channel.sendMessage("You're not part of " + guild.getName() + " anymore, so you can't link!").queue();
             return;
         }
 
@@ -80,7 +118,8 @@ public class LinkManager {
         guild.getController().addRolesToMember(member, guild.getRolesByName(config.linked_users_role, true)).queue();
 
         channel.sendMessage(config.messages.discord_linked_successfully
-                .replace("%player%", info.getSpongeUser().getName()));
+                .replace("%player%", info.getSpongeUser().getName())
+                .replace("%user%", user.getAsTag())).queue();
 
         info.getSpongeUser().getPlayer().ifPresent(p -> p.sendMessage(
                 Utils.toText(config.messages.linked_successfully.replace("%user%", user.getName())
@@ -91,6 +130,7 @@ public class LinkManager {
                 Task.builder().execute(() ->
                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(),
                                 cmd.replace("%player%", finalInfo.getSpongeUser().getName())
+                                    .replace("%user%", user.getAsTag())
                         )).submit(plugin)
         );
 
@@ -105,7 +145,9 @@ public class LinkManager {
             return;
         }
 
-        player.sendMessage(Utils.toText(config.messages.unlink.replace("%player%", player.getName())));
+        player.sendMessage(Utils.toText(config.messages.unlink
+                .replace("%player%", player.getName())
+                .replace("%user%", linkInfo.getDiscordUser().getAsTag())));
 
         User discordUser = linkInfo.getDiscordUser();
         if (discordUser != null) {
@@ -118,7 +160,9 @@ public class LinkManager {
         }
 
         config.commands.unlink.forEach(cmd ->
-                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), cmd.replace("%player%", player.getName()))
+                Sponge.getCommandManager().process(Sponge.getServer().getConsole(),
+                        cmd.replace("%player%", player.getName())
+                            .replace("%user%", discordUser.getAsTag()))
         );
 
         plugin.links.delete(linkInfo);
@@ -130,8 +174,7 @@ public class LinkManager {
             return;
 
         JDA jda = MagiBridge.getInstance().getJDA();
-        Guild guild = jda.getTextChannelById(MagiBridge.getConfig().CHANNELS.MAIN_CHANNEL)
-                .getGuild();
+        Guild guild = jda.getTextChannelById(MagiBridge.getConfig().CHANNELS.MAIN_CHANNEL).getGuild();
 
         Member member = guild.getMemberById(info.discordId);
         if (member == null) {
@@ -140,13 +183,14 @@ public class LinkManager {
             return;
         }
 
-        if (plugin.configManager.get().syncNicknames) {
-            if (!p.getName().equals(member.getNickname())) {
+        if (plugin.configManager.get().syncNicknames && !member.equals(guild.getOwner())) {
+            if (!p.getName().trim().equals(member.getEffectiveName())) {
                 try {
                     guild.getController().setNickname(member, p.getName()).queue();
                 } catch (Exception e) {
                     plugin.logger.error(e.getMessage());
                 }
+                plugin.logger.info("Setting the nickname of " + member.getUser().getName() + " to " + p.getName());
             }
         }
 

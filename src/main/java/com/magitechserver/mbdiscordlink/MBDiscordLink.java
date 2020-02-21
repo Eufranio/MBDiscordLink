@@ -2,30 +2,30 @@ package com.magitechserver.mbdiscordlink;
 
 import com.google.inject.Inject;
 import com.magitechserver.magibridge.MagiBridge;
-import com.magitechserver.mbdiscordlink.config.Config;
 import com.magitechserver.mbdiscordlink.config.MainConfig;
 import com.magitechserver.mbdiscordlink.managers.LinkManager;
 import com.magitechserver.mbdiscordlink.storage.LinkInfo;
-import com.magitechserver.mbdiscordlink.storage.Persistable;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import io.github.eufranio.config.Config;
+import io.github.eufranio.storage.Persistable;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
-import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Task;
-import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.serializer.TextSerializers;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -53,11 +53,13 @@ public class MBDiscordLink {
     private File configDir;
 
     public Config<MainConfig> configManager;
-    public LinkManager linkManager;
+    private LinkManager linkManager;
     public Persistable<LinkInfo, UUID> links;
 
+    ListenerAdapter listener;
+
     @Listener
-    public void onServerStart(GameStartingServerEvent event) {
+    public void onServerStart(GameStartedServerEvent event) {
         this.configManager = new Config<>(MainConfig.class, "MBDiscordLink.conf", configDir);
         this.links = Persistable.create(LinkInfo.class, configManager.get().databaseUrl);
         this.linkManager = new LinkManager(this);
@@ -86,6 +88,17 @@ public class MBDiscordLink {
                     })
                     .build();
             Sponge.getCommandManager().register(this, unlink, "unlink");
+
+            CommandSpec whoIs = CommandSpec.builder()
+                    .permission("magibridge.whois")
+                    .arguments(GenericArguments.user(Text.of("user")))
+                    .executor((src, args) -> {
+                        User user = args.requireOne("user");
+                        linkManager.whoIs(src, user);
+                        return CommandResult.success();
+                    })
+                    .build();
+            Sponge.getCommandManager().register(this, whoIs, "whois", "discorduser");
         }
 
         Task.builder()
@@ -94,17 +107,38 @@ public class MBDiscordLink {
                 .name("MBDiscordLink Role Sync Task")
                 .submit(this);
 
-        MagiBridge.getInstance().getJDA().addEventListener(new ListenerAdapter() {
-            @Override
-            public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
-                String code = event.getMessage().getContentStripped();
-                linkManager.completeLink(code, event.getAuthor(), event.getChannel());
-            }
-        });
+        this.registerListener();
     }
 
     @Listener
     public void onReload(GameReloadEvent event) {
         this.configManager.reload();
+        this.registerListener();
+    }
+
+    void registerListener() {
+        if (this.listener != null) return;
+        if (MagiBridge.getInstance().getJDA() != null) {
+            listener = new ListenerAdapter() {
+                @Override
+                public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
+                    String code = event.getMessage().getContentStripped();
+                    linkManager.completeLink(code, event.getAuthor(), event.getChannel());
+                }
+
+                @Override
+                public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+                    if (!MagiBridge.getInstance().getListeningChannels().contains(event.getChannel().getId()))
+                        return;
+                    String msg = event.getMessage().getContentStripped().trim();
+                    if (msg.startsWith("!whois ")) {
+                        event.getMessage().getMentionedMembers().forEach(m -> linkManager.whoIs(m.getUser(), event.getChannel()));
+                    }
+                }
+            };
+            MagiBridge.getInstance().getJDA().addEventListener(listener);
+        } else {
+            logger.error("MagiBridge has not loaded correctly, MBDiscordLink will not work!");
+        }
     }
 }
