@@ -8,17 +8,23 @@ import com.magitechserver.mbdiscordlink.config.MainConfig;
 import com.magitechserver.mbdiscordlink.storage.LinkInfo;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
+import net.luckperms.api.node.Node;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.service.ProviderRegistration;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import net.luckperms.api.*;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by Frani on 31/12/2019.
@@ -169,10 +175,18 @@ public class LinkManager {
     }
 
     public void syncRoles(Player p) {
+        Optional<ProviderRegistration<LuckPerms>> provider = Sponge.getServiceManager().getRegistration(LuckPerms.class);
+
+        AtomicReference<net.luckperms.api.model.user.@Nullable User> luckpermsUser = new AtomicReference<>();
+
+        if(provider.isPresent()) {
+            LuckPerms luckPerms = provider.get().getProvider();
+            luckpermsUser.set(luckPerms.getUserManager().getUser(p.getUniqueId()));
+        }
+
         LinkInfo info = plugin.links.get(p.getUniqueId());
         if (info == null)
             return;
-
         JDA jda = MagiBridge.getInstance().getJDA();
         Guild guild = jda.getTextChannelById(MagiBridge.getConfig().CHANNELS.MAIN_CHANNEL).getGuild();
 
@@ -225,7 +239,10 @@ public class LinkManager {
                     }
                 }
             } else {
-                if (p.hasPermission(permission)) {
+                boolean hasGroup = (provider.isPresent() && luckpermsUser.get() != null)
+                        ? luckpermsUser.get().getNodes().contains(Node.builder(permission).build())
+                        : p.hasPermission(permission);
+                if (hasGroup) {
                     if (!member.getRoles().contains(role)) {
                         try {
                             guild.getController().addSingleRoleToMember(member, role).queue();
