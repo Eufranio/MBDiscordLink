@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -208,7 +209,8 @@ public class LinkManager {
             }
         }
 
-        plugin.configManager.get().roles_to_sync.forEach((permission, roleId) -> {
+        final Map<String, String> rolesToSync = plugin.configManager.get().roles_to_sync;
+        rolesToSync.forEach((permission, roleId) -> {
             Role role = jda.getRoleById(roleId);
             if (role == null) {
                 plugin.logger.info("The role with the ID " + roleId + " doesn't exist, remove it from the config!");
@@ -252,7 +254,8 @@ public class LinkManager {
                         plugin.logger.info("Adding role " + role.getName() + " to " + member.getUser().getName());
                     }
                 } else {
-                    if (member.getRoles().contains(role)) {
+                    if (member.getRoles().contains(role)
+                            && !userHasPermissions(rolesToSync, role, luckpermsUser.get())) {
                         try {
                             guild.getController().removeSingleRoleFromMember(member, role).queue();
                         } catch (Exception e) {
@@ -263,6 +266,20 @@ public class LinkManager {
                 }
             }
         });
+    }
+
+    private boolean userHasPermissions(Map<String, String> rolesToSync, Role discordRole, net.luckperms.api.model.user.User user) {
+        AtomicBoolean result = new AtomicBoolean(false);
+        rolesToSync
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().equals(discordRole.getId()))
+                .map(Map.Entry::getKey)
+                .forEach(permission -> {
+                    if(!result.get())
+                        result.set(user.getNodes().contains(Node.builder(permission).build()));
+                });
+        return result.get();
     }
 
 }
