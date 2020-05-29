@@ -30,6 +30,7 @@ import org.spongepowered.api.text.Text;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Plugin(
@@ -101,13 +102,26 @@ public class MBDiscordLink {
             Sponge.getCommandManager().register(this, whoIs, "whois", "discorduser");
         }
 
-        Task.builder()
-                .execute(() -> Sponge.getServer().getOnlinePlayers().forEach(linkManager::syncRoles))
-                .interval(Math.max(15, configManager.get().role_sync_interval), TimeUnit.SECONDS)
-                .name("MBDiscordLink Role Sync Task")
-                .submit(this);
-
-        this.registerListener();
+        CompletableFuture.runAsync(() -> {
+            long started = System.currentTimeMillis();
+            while (System.currentTimeMillis() - started < 10000 && MagiBridge.getInstance().getJDA() == null) {
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {} // ignored
+            }
+        }).thenRun(() -> {
+            if (MagiBridge.getInstance().getJDA() == null) {
+                logger.error("MagiBridge has not loaded correctly, MBDiscordLink will not work!");
+            } else {
+                logger.info("MBDiscordLink successfully hooked into MagiBridge!");
+                this.registerListener();
+                Task.builder()
+                        .execute(() -> Sponge.getServer().getOnlinePlayers().forEach(linkManager::syncRoles))
+                        .interval(Math.max(15, configManager.get().role_sync_interval), TimeUnit.SECONDS)
+                        .name("MBDiscordLink Role Sync Task")
+                        .submit(this);
+            }
+        });
     }
 
     @Listener
@@ -118,27 +132,23 @@ public class MBDiscordLink {
 
     void registerListener() {
         if (this.listener != null) return;
-        if (MagiBridge.getInstance().getJDA() != null) {
-            listener = new ListenerAdapter() {
-                @Override
-                public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
-                    String code = event.getMessage().getContentStripped();
-                    linkManager.completeLink(code, event.getAuthor(), event.getChannel());
-                }
+        listener = new ListenerAdapter() {
+            @Override
+            public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
+                String code = event.getMessage().getContentStripped();
+                linkManager.completeLink(code, event.getAuthor(), event.getChannel());
+            }
 
-                @Override
-                public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
-                    if (!MagiBridge.getInstance().getListeningChannels().contains(event.getChannel().getId()))
-                        return;
-                    String msg = event.getMessage().getContentStripped().trim();
-                    if (msg.startsWith("!whois ")) {
-                        event.getMessage().getMentionedMembers().forEach(m -> linkManager.whoIs(m.getUser(), event.getChannel()));
-                    }
+            @Override
+            public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+                if (!MagiBridge.getInstance().getListeningChannels().contains(event.getChannel().getId()))
+                    return;
+                String msg = event.getMessage().getContentStripped().trim();
+                if (msg.startsWith("!whois ")) {
+                    event.getMessage().getMentionedMembers().forEach(m -> linkManager.whoIs(m.getUser(), event.getChannel()));
                 }
-            };
-            MagiBridge.getInstance().getJDA().addEventListener(listener);
-        } else {
-            logger.error("MagiBridge has not loaded correctly, MBDiscordLink will not work!");
-        }
+            }
+        };
+        MagiBridge.getInstance().getJDA().addEventListener(listener);
     }
 }
