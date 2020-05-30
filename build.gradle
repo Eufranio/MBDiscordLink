@@ -4,7 +4,7 @@ plugins {
 }
 
 group = pluginGroup
-version = '2.2'
+version = '2.2.1'
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'

@@ -145,11 +145,11 @@ public class LinkManager {
             return;
         }
 
+        User discordUser = linkInfo.getDiscordUser();
         player.sendMessage(Utils.toText(config.messages.unlink
                 .replace("%player%", player.getName())
-                .replace("%user%", linkInfo.getDiscordUser().getAsTag())));
+                .replace("%user%", discordUser != null ? discordUser.getAsTag() : "Unknown")));
 
-        User discordUser = linkInfo.getDiscordUser();
         if (discordUser != null) {
             Guild guild = discordUser.getJDA()
                     .getTextChannelById(MagiBridge.getInstance().getConfig().CHANNELS.MAIN_CHANNEL)
@@ -160,7 +160,7 @@ public class LinkManager {
         config.commands.unlink.forEach(cmd ->
                 Sponge.getCommandManager().process(Sponge.getServer().getConsole(),
                         cmd.replace("%player%", player.getName())
-                            .replace("%user%", discordUser.getAsTag()))
+                            .replace("%user%", discordUser != null ? discordUser.getAsTag() : "Unknown"))
         );
 
         plugin.links.delete(linkInfo);
