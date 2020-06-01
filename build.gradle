@@ -4,12 +4,12 @@ plugins {
 }
 
 group = pluginGroup
-version = '2.2.1'
+version = '2.2.2'
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
     annotationProcessor 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
-    compile 'com.github.Eufranio:MagiBridge:2.10'
+    compile 'com.github.Eufranio:MagiBridge:api-7-SNAPSHOT'
     shadow 'com.github.Eufranio:StorageUtils:2.2'
 }
 
