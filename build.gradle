@@ -3,6 +3,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
+apply plugin: 'maven'
+
 group = pluginGroup
 version = '2.2.2'
 
@@ -29,6 +31,7 @@ shadowJar {
     from sourceSets.main.output
 }
 build.dependsOn shadowJar
+install.dependsOn build
 
 
 sponge.plugin.id = pluginId
