@@ -53,6 +53,11 @@ public class MainConfig {
 
     }
 
+    @Setting(value = "permission-check-prefix", comment = "The prefix of the permission when checking groups of roles-to-sync, if inverse sync is enabled.\n" +
+            "This prefix will be used as prefix + groupname to check the permission. Leave empty if using a permission node instead\n" +
+            "the group name on roles-to-sync.")
+    public String permission_check_prefix = "group.";
+
     @Setting(value = "roles-to-sync", comment = "A key-value list with roles that should sync with in-game groups\n" +
             "The format is \"<in-game permission node>\"=\"discord-role-id\"")
     public Map<String, String> roles_to_sync = new HashMap<>();

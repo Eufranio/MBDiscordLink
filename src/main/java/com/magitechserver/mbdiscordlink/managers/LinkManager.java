@@ -183,7 +183,9 @@ public class LinkManager {
             return;
         }
 
-        if (plugin.configManager.get().syncNicknames && !member.equals(guild.getOwner())) {
+        MainConfig config = plugin.configManager.get();
+
+        if (config.syncNicknames && !member.equals(guild.getOwner())) {
             if (!p.getName().trim().equals(member.getEffectiveName())) {
                 try {
                     guild.getController().setNickname(member, p.getName()).queue();
@@ -193,22 +195,20 @@ public class LinkManager {
                 plugin.logger.info("Setting the nickname of " + member.getUser().getName() + " to " + p.getName());
             }
         }
-
-        plugin.configManager.get().roles_to_sync.forEach((permission, roleId) -> {
+        config.roles_to_sync.forEach((permission, roleId) -> {
             Role role = jda.getRoleById(roleId);
             if (role == null) {
                 plugin.logger.info("The role with the ID " + roleId + " doesn't exist, remove it from the config!");
                 return;
             }
 
-            MainConfig config = plugin.configManager.get();
             if (config.inverseSync) {
                 // permission = group
                 if (permission.equalsIgnoreCase("default"))
                     return;
 
                 if (member.getRoles().contains(role)) {
-                    if (!p.hasPermission("group." + permission)) {
+                    if (!p.hasPermission(config.permission_check_prefix + permission)) {
                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(),
                                 config.addGroupCommand.replace("%group%", permission)
                                 .replace("%player%", p.getName())
@@ -216,7 +216,7 @@ public class LinkManager {
                         plugin.logger.info("Adding group " + permission + " to " + p.getName());
                     }
                 } else {
-                    if (p.hasPermission("group." + permission)) {
+                    if (p.hasPermission(config.permission_check_prefix+ permission)) {
                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(),
                                 config.removeGroupCommand.replace("%group%", permission)
                                         .replace("%player%", p.getName())
