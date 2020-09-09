@@ -6,11 +6,11 @@ plugins {
 apply plugin: 'maven'
 
 group = pluginGroup
-version = '2.2.2'
+version = '2.3'
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
-    annotationProcessor 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
+    compile 'org.spongepowered:spongeapi:7.3.0'
+    annotationProcessor 'org.spongepowered:spongeapi:7.3.0'
     compile 'com.github.Eufranio:MagiBridge:api-7-SNAPSHOT'
     shadow 'com.github.Eufranio:StorageUtils:2.2'
 }
@@ -29,6 +29,8 @@ shadowJar {
 
     classifier = null // Remove '-all' suffix from output file name
     from sourceSets.main.output
+
+    relocate 'net.dv8tion', 'magibridge.net.dv8tion'
 }
 build.dependsOn shadowJar
 install.dependsOn build
