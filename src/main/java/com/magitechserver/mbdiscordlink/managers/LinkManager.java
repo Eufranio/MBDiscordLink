@@ -110,12 +110,20 @@ public class LinkManager {
             return;
         }
 
+        Role role = guild.getRolesByName(config.linked_users_role, true)
+                .stream().findFirst()
+                .orElse(null);
+        if (role == null) {
+            plugin.logger.error("Unknown linked users role! Cannot complete link!");
+            return;
+        }
+
         info = new LinkInfo();
         info.uuid = player;
         info.discordId = user.getId();
         plugin.links.save(info);
 
-        guild.getController().addRolesToMember(member, guild.getRolesByName(config.linked_users_role, true)).queue();
+        guild.addRoleToMember(member, role).queue();
 
         channel.sendMessage(config.messages.discord_linked_successfully
                 .replace("%player%", info.getSpongeUser().getName())
@@ -154,9 +162,17 @@ public class LinkManager {
             Guild guild = discordUser.getJDA()
                     .getTextChannelById(MagiBridge.getInstance().getConfig().CHANNELS.MAIN_CHANNEL)
                     .getGuild();
-            guild.getController().removeRolesFromMember(
-                    guild.getMember(discordUser),
-                    guild.getRolesByName(config.linked_users_role, true)).queue();
+
+            Role role = guild.getRolesByName(config.linked_users_role, true)
+                    .stream().findFirst()
+                    .orElse(null);
+            if (role == null) {
+                plugin.logger.error("Unknown linked users role! Cannot unlink!");
+                player.sendMessages(Text.of(TextColors.RED, "Error when unlinking!"));
+                return;
+            }
+
+            guild.removeRoleFromMember(guild.getMember(discordUser), role).queue();
         }
 
         config.commands.unlink.forEach(cmd ->
@@ -188,7 +204,7 @@ public class LinkManager {
         if (config.syncNicknames && !member.equals(guild.getOwner())) {
             if (!p.getName().trim().equals(member.getEffectiveName())) {
                 try {
-                    guild.getController().setNickname(member, p.getName()).queue();
+                    guild.modifyNickname(member, p.getName()).queue();
                 } catch (Exception e) {
                     plugin.logger.error(e.getMessage());
                 }
@@ -228,7 +244,7 @@ public class LinkManager {
                 if (p.hasPermission(permission)) {
                     if (!member.getRoles().contains(role)) {
                         try {
-                            guild.getController().addSingleRoleToMember(member, role).queue();
+                            guild.addRoleToMember(member, role).queue();
                         } catch (Exception e) {
                             plugin.logger.error(e.getMessage());
                         }
@@ -237,7 +253,7 @@ public class LinkManager {
                 } else {
                     if (member.getRoles().contains(role)) {
                         try {
-                            guild.getController().removeSingleRoleFromMember(member, role).queue();
+                            guild.removeRoleFromMember(member, role).queue();
                         } catch (Exception e) {
                             plugin.logger.error(e.getMessage());
                         }

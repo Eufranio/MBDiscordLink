@@ -6,12 +6,12 @@ plugins {
 apply plugin: 'maven'
 
 group = pluginGroup
-version = '2.3'
+version = '2.3.1'
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.3.0'
     annotationProcessor 'org.spongepowered:spongeapi:7.3.0'
-    compile 'com.github.Eufranio:MagiBridge:api-7-SNAPSHOT'
+    compile 'com.github.Eufranio:MagiBridge:2.11.1'
     shadow 'com.github.Eufranio:StorageUtils:2.2'
 }
 
