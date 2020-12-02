@@ -33,6 +33,16 @@ shadowJar {
     relocate 'net.dv8tion', 'magibridge.net.dv8tion'
 }
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+    archives shadowJar
+}
+
 build.dependsOn shadowJar
 install.dependsOn build
 
