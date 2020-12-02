@@ -27,11 +27,12 @@ configurations {
 shadowJar {
     configurations = [project.configurations.shadow]
 
-    classifier = null // Remove '-all' suffix from output file name
+    archiveClassifier = System.getenv('JITPACK') != null ? 'all' : null // Remove '-all' suffix from output file name
     from sourceSets.main.output
 
     relocate 'net.dv8tion', 'magibridge.net.dv8tion'
 }
+
 build.dependsOn shadowJar
 install.dependsOn build
 
