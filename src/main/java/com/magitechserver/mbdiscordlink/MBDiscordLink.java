@@ -102,9 +102,19 @@ public class MBDiscordLink {
             Sponge.getCommandManager().register(this, whoIs, "whois", "discorduser");
         }
 
+        this.hookBridge();
+    }
+
+    @Listener
+    public void onReload(GameReloadEvent event) {
+        this.configManager.reload();
+        this.hookBridge();
+    }
+
+    void hookBridge() {
         CompletableFuture.runAsync(() -> {
             long started = System.currentTimeMillis();
-            while (System.currentTimeMillis() - started < 10000 && MagiBridge.getInstance().getJDA() == null) {
+            while ((System.currentTimeMillis() - started) < 15000 && MagiBridge.getInstance().getJDA() == null) {
                 try {
                     Thread.sleep(500);
                 } catch (Exception e) {} // ignored
@@ -122,12 +132,6 @@ public class MBDiscordLink {
                         .submit(this);
             }
         });
-    }
-
-    @Listener
-    public void onReload(GameReloadEvent event) {
-        this.configManager.reload();
-        this.registerListener();
     }
 
     void registerListener() {
